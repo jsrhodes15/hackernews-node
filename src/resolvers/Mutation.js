@@ -1,11 +1,11 @@
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
-const { APP_SECRET, getUserId } = require('../utils');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { APP_SECRET, getUserId } = require("../utils");
 
 function post(parent, { url, description }, context, info) {
   const userId = getUserId(context);
   return context.db.mutation.createLink(
-    { 
+    {
       data: {
         url,
         description,
@@ -14,7 +14,7 @@ function post(parent, { url, description }, context, info) {
         }
       }
     },
-    info,
+    info
   );
 }
 
@@ -24,12 +24,12 @@ async function signup(parent, args, context, info) {
     data: { ...args, password }
   });
 
-    const token = jwt.sign({ userId: user.id }, APP_SECRET);
+  const token = jwt.sign({ userId: user.id }, APP_SECRET);
 
-    return {
-      token,
-      user,
-    }
+  return {
+    token,
+    user
+  };
 }
 
 async function login(parent, args, context, info) {
@@ -40,15 +40,15 @@ async function login(parent, args, context, info) {
 
   const valid = await bcrypt.compare(args.password, user.password);
   if (!valid) {
-    throw new Error('Invalid password');
+    throw new Error("Invalid password");
   }
 
-  const token = jwt.sign({ userId: user.id}, APP_SECRET);
+  const token = jwt.sign({ userId: user.id }, APP_SECRET);
 
   return {
     token,
-    user,
-  }
+    user
+  };
 }
 
 async function vote(parent, args, context, info) {
@@ -56,7 +56,7 @@ async function vote(parent, args, context, info) {
   const { linkId } = args;
   const linkExists = await context.db.exists.Vote({
     user: { id: userId },
-    link: { id: linkId }, 
+    link: { id: linkId }
   });
 
   if (linkExists) {
@@ -67,10 +67,10 @@ async function vote(parent, args, context, info) {
     {
       data: {
         user: { connect: { id: userId } },
-        link: { connect: { id: linkId } },
-      },
+        link: { connect: { id: linkId } }
+      }
     },
-    info,
+    info
   );
 }
 
@@ -78,4 +78,5 @@ module.exports = {
   post,
   signup,
   login,
-}
+  vote
+};
